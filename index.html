@@ -70,9 +70,9 @@
 .game-help{font-size:12px;color:#708674;line-height:1.7;margin:12px 0 0}
 @media(max-width:480px){.game-wrap{grid-template-columns:minmax(0,1fr) minmax(105px,.65fr);gap:10px}.game-board-wrap{max-width:220px}.game-stat{padding:8px}.game-stat strong{font-size:19px}.game-controls button{min-height:52px}}
 
-/* 5000-point Guardian unlock */
+/* 2000-point Guardian unlock */
 .choice.guardian-locked{position:relative;filter:saturate(.58);outline:2px dashed #a28c72;outline-offset:-2px}
-.choice.guardian-locked:after{content:'🔒 5,000';position:absolute;right:5px;top:5px;padding:3px 8px;background:#fffaf2f0;color:#644c36;border:1px solid #d5b98d;border-radius:99px;font-weight:800;font-size:12px;box-shadow:0 2px 4px #59462c20;pointer-events:none}
+.choice.guardian-locked:after{content:'🔒 2,000';position:absolute;right:5px;top:5px;padding:3px 8px;background:#fffaf2f0;color:#644c36;border:1px solid #d5b98d;border-radius:99px;font-weight:800;font-size:12px;box-shadow:0 2px 4px #59462c20;pointer-events:none}
 .guardian-progress{margin:12px 0 5px;padding:14px 16px;border:1px solid #b7d8bd;border-radius:14px;background:#f2fbf1;color:#4d574a;line-height:1.6;font-size:13px}
 .guardian-progress strong{color:#4b6a53}.guardian-meter{height:8px;background:#dce8d9;border-radius:99px;overflow:hidden;margin-top:8px}.guardian-meter-fill{height:100%;width:0;background:linear-gradient(90deg,#78bfa7,#d1b68d);border-radius:99px;transition:width .25s}
 </style></head><body><main><header><nav class="lang-switch" aria-label="Language / 語言"><button id="langZh" type="button" aria-pressed="true">繁體中文</button><button id="langEn" type="button" aria-pressed="false">English</button></nav><div class="eyebrow" data-i18n="eyebrow">全世界都愛敖尹</div><h1 data-i18n="heading">專屬頭像框製作器</h1><p data-i18n="intro">選擇喜歡的款式，製作自己的專屬頭像 ♡</p><div class="music-bar" role="group" aria-label="Background music / 背景音樂">
@@ -107,9 +107,9 @@
 </div>
 </main>
 <script>
-/* Guardian frames unlock when one Tetris run scores at least 5,000. Local browser save. */
+/* Guardian frames unlock when one Tetris run scores at least 2,000. Local browser save. */
 (function(){
- const STORAGE='aoyin_tetris_guardian_best_v1', TARGET=5000;
+ const STORAGE='aoyin_tetris_guardian_best_v1', TARGET=2000;
  const best=()=>{try{return Math.max(0,Number(localStorage.getItem(STORAGE))||0)}catch(e){return 0}};
  const isEnglish=()=>localStorage.getItem('aoyin_language')==='en';
  const choices=document.getElementById('choices');
@@ -120,16 +120,16 @@
  function canSelect(i){return i!==1&&i!==3||unlocked()}
  function refresh(){
    const en=isEnglish(), points=best(), got=unlocked();
-   document.getElementById('guardianInfo').textContent=got?(en?'🔓 Guardian frames unlocked!':'🔓 守護頭像框已解鎖！'):(en?'🔒 Guardian frames · Unlock at 5,000 points':'🔒 守護頭像框 · 達到 5,000 分解鎖');
-   document.getElementById('guardianProgressText').textContent=got?(en?'You can now use both Guardian frames.':'現在可以使用兩款守護頭像框了 ♡'):(en?`Best Tetris score: ${points.toLocaleString()} / 5,000 (one game)`:`俄羅斯方塊最高分：${points.toLocaleString()} / 5,000（單局）`);
+   document.getElementById('guardianInfo').textContent=got?(en?'🔓 Guardian frames unlocked!':'🔓 守護頭像框已解鎖！'):(en?'🔒 Guardian frames · Unlock at 2,000 points':'🔒 守護頭像框 · 達到 2,000 分解鎖');
+   document.getElementById('guardianProgressText').textContent=got?(en?'You can now use both Guardian frames.':'現在可以使用兩款守護頭像框了 ♡'):(en?`Best Tetris score: ${points.toLocaleString()} / 2,000 (one game)`:`俄羅斯方塊最高分：${points.toLocaleString()} / 2,000（單局）`);
    document.getElementById('guardianFill').style.width=Math.min(100,points/TARGET*100)+'%';
    [...choices.querySelectorAll('.choice')].forEach((el,i)=>{
      const locked=!canSelect(i);el.classList.toggle('guardian-locked',locked);
-     if(locked)el.setAttribute('aria-label',(en?'Locked until 5,000 points: ':'滿 5,000 分解鎖：')+(en?(i===1?'No.1 Wolfie · Guardian':'Sleepless Hootie · Guardian'):(i===1?'波萬·守護':'熬夜咕·守護')));
+     if(locked)el.setAttribute('aria-label',(en?'Locked until 2,000 points: ':'滿 2,000 分解鎖：')+(en?(i===1?'No.1 Wolfie · Guardian':'Sleepless Hootie · Guardian'):(i===1?'波萬·守護':'熬夜咕·守護')));
      else el.removeAttribute('aria-label');
    });
  }
- function lockNotice(){const msg=isEnglish()?'Score 5,000 in a single Tetris game to unlock both Guardian frames!':'在俄羅斯方塊單局達到 5,000 分，就能解鎖兩款守護頭像框！';const status=document.getElementById('status');if(status){status.textContent=msg} panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
+ function lockNotice(){const msg=isEnglish()?'Score 2,000 in a single Tetris game to unlock both Guardian frames!':'在俄羅斯方塊單局達到 2,000 分，就能解鎖兩款守護頭像框！';const status=document.getElementById('status');if(status){status.textContent=msg} panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
  function recordScore(score){if(!Number.isFinite(score)||score<0)return;const previous=best();if(score>previous){try{localStorage.setItem(STORAGE,String(Math.floor(score)))}catch(e){}refresh();if(previous<TARGET&&score>=TARGET){const status=document.getElementById('status');if(status)status.textContent=isEnglish()?'🎉 You unlocked both Guardian frames!':'🎉 恭喜！兩款守護頭像框已解鎖！';}}}
  window.aoyinGuardian={canSelect,lockNotice,recordScore,refresh};
  for(const id of ['langZh','langEn'])document.getElementById(id)?.addEventListener('click',()=>setTimeout(refresh,0));
