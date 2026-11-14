@@ -69,6 +69,12 @@
 .game-controls button:active{transform:translateY(2px);box-shadow:none}
 .game-help{font-size:12px;color:#708674;line-height:1.7;margin:12px 0 0}
 @media(max-width:480px){.game-wrap{grid-template-columns:minmax(0,1fr) minmax(105px,.65fr);gap:10px}.game-board-wrap{max-width:220px}.game-stat{padding:8px}.game-stat strong{font-size:19px}.game-controls button{min-height:52px}}
+
+/* 5000-point Guardian unlock */
+.choice.guardian-locked{position:relative;filter:saturate(.58);outline:2px dashed #a28c72;outline-offset:-2px}
+.choice.guardian-locked:after{content:'🔒 5,000';position:absolute;right:5px;top:5px;padding:3px 8px;background:#fffaf2f0;color:#644c36;border:1px solid #d5b98d;border-radius:99px;font-weight:800;font-size:12px;box-shadow:0 2px 4px #59462c20;pointer-events:none}
+.guardian-progress{margin:12px 0 5px;padding:14px 16px;border:1px solid #b7d8bd;border-radius:14px;background:#f2fbf1;color:#4d574a;line-height:1.6;font-size:13px}
+.guardian-progress strong{color:#4b6a53}.guardian-meter{height:8px;background:#dce8d9;border-radius:99px;overflow:hidden;margin-top:8px}.guardian-meter-fill{height:100%;width:0;background:linear-gradient(90deg,#78bfa7,#d1b68d);border-radius:99px;transition:width .25s}
 </style></head><body><main><header><nav class="lang-switch" aria-label="Language / 語言"><button id="langZh" type="button" aria-pressed="true">繁體中文</button><button id="langEn" type="button" aria-pressed="false">English</button></nav><div class="eyebrow" data-i18n="eyebrow">全世界都愛敖尹</div><h1 data-i18n="heading">專屬頭像框製作器</h1><p data-i18n="intro">選擇喜歡的款式，製作自己的專屬頭像 ♡</p><div class="music-bar" role="group" aria-label="Background music / 背景音樂">
 <span class="music-icon" aria-hidden="true">♫</span><span class="music-label" id="musicLabel">薄荷糖音樂盒</span>
 <button id="musicToggle" type="button" aria-pressed="false">♫ 播放 BGM</button>
@@ -98,7 +104,38 @@
   <div class="dan-dialog-actions"><button type="button" id="danLike" data-i18n="like">♡ 按讚</button><button type="button" class="danger" id="danReport" data-i18n="report">⚑ 檢舉</button><button type="button" class="close" id="danClose" data-i18n="close">關閉</button></div>
   </div>
 </div>
-</main><script>
+</main>
+<script>
+/* Guardian frames unlock when one Tetris run scores at least 5,000. Local browser save. */
+(function(){
+ const STORAGE='aoyin_tetris_guardian_best_v1', TARGET=5000;
+ const best=()=>{try{return Math.max(0,Number(localStorage.getItem(STORAGE))||0)}catch(e){return 0}};
+ const isEnglish=()=>localStorage.getItem('aoyin_language')==='en';
+ const choices=document.getElementById('choices');
+ const panel=document.createElement('div');panel.className='guardian-progress';panel.setAttribute('role','status');panel.setAttribute('aria-live','polite');
+ panel.innerHTML='<strong id="guardianInfo"></strong><div id="guardianProgressText"></div><div class="guardian-meter"><div class="guardian-meter-fill" id="guardianFill"></div></div>';
+ choices.insertAdjacentElement('afterend',panel);
+ function unlocked(){return best()>=TARGET}
+ function canSelect(i){return i!==1&&i!==3||unlocked()}
+ function refresh(){
+   const en=isEnglish(), points=best(), got=unlocked();
+   document.getElementById('guardianInfo').textContent=got?(en?'🔓 Guardian frames unlocked!':'🔓 守護頭像框已解鎖！'):(en?'🔒 Guardian frames · Unlock at 5,000 points':'🔒 守護頭像框 · 達到 5,000 分解鎖');
+   document.getElementById('guardianProgressText').textContent=got?(en?'You can now use both Guardian frames.':'現在可以使用兩款守護頭像框了 ♡'):(en?`Best Tetris score: ${points.toLocaleString()} / 5,000 (one game)`:`俄羅斯方塊最高分：${points.toLocaleString()} / 5,000（單局）`);
+   document.getElementById('guardianFill').style.width=Math.min(100,points/TARGET*100)+'%';
+   [...choices.querySelectorAll('.choice')].forEach((el,i)=>{
+     const locked=!canSelect(i);el.classList.toggle('guardian-locked',locked);
+     if(locked)el.setAttribute('aria-label',(en?'Locked until 5,000 points: ':'滿 5,000 分解鎖：')+(en?(i===1?'No.1 Wolfie · Guardian':'Sleepless Hootie · Guardian'):(i===1?'波萬·守護':'熬夜咕·守護')));
+     else el.removeAttribute('aria-label');
+   });
+ }
+ function lockNotice(){const msg=isEnglish()?'Score 5,000 in a single Tetris game to unlock both Guardian frames!':'在俄羅斯方塊單局達到 5,000 分，就能解鎖兩款守護頭像框！';const status=document.getElementById('status');if(status){status.textContent=msg} panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
+ function recordScore(score){if(!Number.isFinite(score)||score<0)return;const previous=best();if(score>previous){try{localStorage.setItem(STORAGE,String(Math.floor(score)))}catch(e){}refresh();if(previous<TARGET&&score>=TARGET){const status=document.getElementById('status');if(status)status.textContent=isEnglish()?'🎉 You unlocked both Guardian frames!':'🎉 恭喜！兩款守護頭像框已解鎖！';}}}
+ window.aoyinGuardian={canSelect,lockNotice,recordScore,refresh};
+ for(const id of ['langZh','langEn'])document.getElementById(id)?.addEventListener('click',()=>setTimeout(refresh,0));
+ refresh();
+})();
+</script>
+<script>
 const LANGS={
  zh:{eyebrow:'全世界都愛敖尹',heading:'專屬頭像框製作器',intro:'選擇喜歡的款式，製作自己的專屬頭像 ♡',previewHelp:'拖曳移動照片 · 雙指縮放 · 背景透明',chooseFrame:'選擇頭像框',uploadPhoto:'上傳照片',selectPhoto:'＋ 選擇照片',zoom:'照片縮放',reset:'重設位置',download:'下載 PNG',privacy:'輸出尺寸 1024 × 1024。照片只會在你的裝置上處理，不會上傳伺服器。iPhone 可從分享選單儲存影像。',wall:'🍫🐾 留言彈幕牆',wallHelp:'點一下彈幕可以按讚或檢舉',empty:'把想說的話變成彈幕吧 ♡',send:'發送彈幕',loading:'載入留言中…',interaction:'留言互動',like:'♡ 按讚',report:'⚑ 檢舉',close:'關閉',wallLabel:'留言彈幕區',stageLabel:'即時留言彈幕',dialogLabel:'彈幕操作',nicknamePlaceholder:'你的暱稱（1～16 字）',messagePlaceholder:'輸入留言（最多 80 字）',nicknameLabel:'訪客暱稱',messageLabel:'留言內容',framePreview:'頭像框預覽',guest:'訪客',likesCount:n=>`♡ ${n} 個讚`,liked:'♥ 已按讚',reported:'已檢舉',invalidPhoto:'請選擇圖片檔案',photoLoaded:'照片已載入，可以拖曳調整！',photoError:'無法讀取照片，請換一張圖片',pngGenerating:'正在產生 PNG…',pngFailed:'PNG 產生失敗',shareHint:'可從分享選單選擇「儲存影像」',shareCancelled:'已取消分享',pngReady:'已產生 PNG，若沒有自動下載，請使用 Safari 開啟網站。',imageFailed:e=>'產生圖片失敗：'+e,apiFailed:'伺服器回應異常',genericFailed:'操作失敗',commentCount:n=>`目前共有 ${n} 則留言 · 每隔幾秒更新`,noComments:'還沒有留言，來當第一個吧！',serviceError:e=>'留言服務尚未連線：'+e+'。請使用 Netlify 部署版並完成設定。',reportSent:'檢舉已送出。累積 5 個不同裝置檢舉後會隱藏該留言。',likeSent:'按讚成功！',nicknameTooLong:'暱稱最多 16 字',sendSuccess:'彈幕發送成功！',sendFail:e=>'發送失敗：'+e,frameNames:['波萬','波萬·守護','熬夜咕','熬夜咕·守護'],pngSuffix:'-頭像.png'},
  en:{eyebrow:'全世界都愛敖尹',heading:'Personal Avatar Frame Maker',intro:'Choose your favorite frame and make an avatar of your own ♡',previewHelp:'Drag to move · Pinch to zoom · Transparent background',chooseFrame:'Choose a frame',uploadPhoto:'Upload your photo',selectPhoto:'＋ Choose a photo',zoom:'Photo zoom',reset:'Reset position',download:'Download PNG',privacy:'Export size: 1024 × 1024. Your photo stays on your device and is never uploaded. On iPhone, save the image from the Share menu.',wall:'🍫🐾 Live Message Wall',wallHelp:'Tap a floating message to like or report it',empty:'Send a message and watch it float by ♡',send:'Send message',loading:'Loading messages…',interaction:'Message actions',like:'♡ Like',report:'⚑ Report',close:'Close',wallLabel:'Floating message wall',stageLabel:'Live floating messages',dialogLabel:'Message actions',nicknamePlaceholder:'Your nickname (1–16 characters)',messagePlaceholder:'Your message (up to 80 characters)',nicknameLabel:'Nickname',messageLabel:'Message',framePreview:'Avatar frame preview',guest:'Guest',likesCount:n=>`♡ ${n} likes`,liked:'♥ Liked',reported:'Reported',invalidPhoto:'Please choose an image file',photoLoaded:'Photo loaded! Drag to reposition it.',photoError:'Unable to read this photo. Please try another.',pngGenerating:'Creating your PNG…',pngFailed:'Failed to create PNG',shareHint:'Select Save Image in the Share menu',shareCancelled:'Sharing cancelled',pngReady:'PNG created. If it did not download, open the website in Safari.',imageFailed:e=>'Image creation failed: '+e,apiFailed:'Unexpected server response',genericFailed:'Something went wrong',commentCount:n=>`${n} messages · Updated every few seconds`,noComments:'No messages yet. Be the first!',serviceError:e=>'Message service unavailable: '+e+'. Deploy with Netlify and finish the setup.',reportSent:'Report submitted. This message will be hidden after reports from 5 different devices.',likeSent:'Liked!',nicknameTooLong:'Nickname must be 16 characters or fewer',sendSuccess:'Your message was sent!',sendFail:e=>'Could not send: '+e,frameNames:['No.1 Wolfie','No.1 Wolfie · Guardian','Sleepless Hootie','Sleepless Hootie · Guardian'],pngSuffix:'-avatar.png'}
@@ -127,7 +164,7 @@ const frames=FRAME_URLS.map(src=>{const img=new Image();img.src=src;return img})
 let selected=0,photo=null,zoom=1,px=512,py=516;const cx=512,cy=516,r=330;
 function render(){ctx.clearRect(0,0,1024,1024);if(!photo)return;const s=Math.max(2*r/photo.naturalWidth,2*r/photo.naturalHeight)*zoom;const w=photo.naturalWidth*s,h=photo.naturalHeight*s;px=Math.max(cx-(w/2-r),Math.min(cx+(w/2-r),px));py=Math.max(cy-(h/2-r),Math.min(cy+(h/2-r),py));ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();ctx.drawImage(photo,px-w/2,py-h/2,w,h);ctx.restore()}
 function setZoom(v){zoom=Math.max(1,Math.min(4,v));slider.value=zoom;document.getElementById('zoomLabel').textContent=Math.round(zoom*100)+'%';render()}
-function selectFrame(i){selected=i;overlay.src=FRAME_URLS[i];document.querySelectorAll('.choice').forEach((el,j)=>el.setAttribute('aria-pressed',String(i===j)));status.textContent=''}
+function selectFrame(i){if(!window.aoyinGuardian.canSelect(i)){window.aoyinGuardian.lockNotice();return;}selected=i;overlay.src=FRAME_URLS[i];document.querySelectorAll('.choice').forEach((el,j)=>el.setAttribute('aria-pressed',String(i===j)));status.textContent=''}
 document.querySelectorAll('.choice').forEach((el,i)=>el.addEventListener('click',()=>selectFrame(i)));
 document.getElementById('file').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;if(!f.type.startsWith('image/')){status.textContent=t('invalidPhoto');return}const url=URL.createObjectURL(f);const im=new Image();im.onload=()=>{photo=im;px=cx;py=cy;setZoom(1);save.disabled=false;status.textContent=t('photoLoaded');URL.revokeObjectURL(url)};im.onerror=()=>{status.textContent=t('photoError');URL.revokeObjectURL(url)};im.src=url;e.target.value=''});
 slider.addEventListener('input',()=>setZoom(+slider.value));document.getElementById('reset').addEventListener('click',()=>{px=cx;py=cy;setZoom(1)});
@@ -137,7 +174,7 @@ canvas.addEventListener('pointerdown',e=>{if(!photo)return;canvas.setPointerCapt
 canvas.addEventListener('pointermove',e=>{if(!photo||!pointers.has(e.pointerId))return;const old=[...pointers.values()];pointers.set(e.pointerId,coord(e));const now=[...pointers.values()];if(now.length===1){px+=now[0].x-old[0].x;py+=now[0].y-old[0].y;render()}else if(now.length>=2){const center={x:(now[0].x+now[1].x)/2,y:(now[0].y+now[1].y)/2};const dist=Math.hypot(now[0].x-now[1].x,now[0].y-now[1].y);if(lastCenter){px+=center.x-lastCenter.x;py+=center.y-lastCenter.y}if(lastDistance&&dist>0)setZoom(zoom*dist/lastDistance);lastCenter=center;lastDistance=dist;render()}});
 for(const ev of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(ev,e=>{pointers.delete(e.pointerId);lastCenter=null;lastDistance=null});
 async function makeBlob(){const output=document.createElement('canvas');output.width=1024;output.height=1024;const c=output.getContext('2d');c.drawImage(canvas,0,0);const f=frames[selected];if(!f.complete||!f.naturalWidth)await f.decode();c.drawImage(f,0,0,1024,1024);return new Promise((resolve,reject)=>output.toBlob(b=>b?resolve(b):reject(new Error(t('pngFailed'))),'image/png'))}
-save.addEventListener('click',async()=>{if(!photo)return;save.disabled=true;status.textContent=t('pngGenerating');try{const blob=await makeBlob();const name=t('frameNames')[selected]+t('pngSuffix');const file=new File([blob],name,{type:'image/png'});if(/iPad|iPhone|iPod/.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});status.textContent=t('shareHint');return}catch(e){if(e.name==='AbortError'){status.textContent=t('shareCancelled');return}}}const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();status.textContent=t('pngReady');setTimeout(()=>URL.revokeObjectURL(url),60000)}catch(e){status.textContent=t('imageFailed',e.message)}finally{save.disabled=false}});
+save.addEventListener('click',async()=>{if(!photo)return;if(!window.aoyinGuardian.canSelect(selected)){window.aoyinGuardian.lockNotice();return;}save.disabled=true;status.textContent=t('pngGenerating');try{const blob=await makeBlob();const name=t('frameNames')[selected]+t('pngSuffix');const file=new File([blob],name,{type:'image/png'});if(/iPad|iPhone|iPod/.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});status.textContent=t('shareHint');return}catch(e){if(e.name==='AbortError'){status.textContent=t('shareCancelled');return}}}const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();status.textContent=t('pngReady');setTimeout(()=>URL.revokeObjectURL(url),60000)}catch(e){status.textContent=t('imageFailed',e.message)}finally{save.disabled=false}});
 render();
 
 (function(){
@@ -331,7 +368,7 @@ render();
  function paintCell(c,x,y,color,ghost=false){c.fillStyle=ghost?'#d5e8d5':color;c.fillRect(x*C+1,y*C+1,C-2,C-2);if(!ghost){c.fillStyle='#ffffff65';c.fillRect(x*C+3,y*C+3,C-6,4);c.strokeStyle='#705d4b44';c.strokeRect(x*C+1.5,y*C+1.5,C-3,C-3)}}
  function render(){ctx.fillStyle='#edf7ec';ctx.fillRect(0,0,240,480);ctx.strokeStyle='#dbeadd';ctx.lineWidth=.6;for(let x=0;x<=W;x++){ctx.beginPath();ctx.moveTo(x*C,0);ctx.lineTo(x*C,480);ctx.stroke()}for(let y=0;y<=H;y++){ctx.beginPath();ctx.moveTo(0,y*C);ctx.lineTo(240,y*C);ctx.stroke()}board.forEach((row,y)=>row.forEach((type,x)=>{if(type)paintCell(ctx,x,y,colors[type])}));if(piece){let fall=0;while(!hits(piece,0,fall+1))fall++;for(let y=0;y<piece.m.length;y++)for(let x=0;x<piece.m[y].length;x++)if(piece.m[y][x]){let tx=piece.x+x,ty=piece.y+y;if(ty+fall>=0)paintCell(ctx,tx,ty+fall,colors[piece.type],true)}for(let y=0;y<piece.m.length;y++)for(let x=0;x<piece.m[y].length;x++)if(piece.m[y][x]&&piece.y+y>=0)paintCell(ctx,piece.x+x,piece.y+y,colors[piece.type])}}
  function updateNext(){pc.clearRect(0,0,100,92);if(!next)return;let m=next.m,sz=21,offX=(100-m[0].length*sz)/2,offY=(92-m.length*sz)/2;for(let y=0;y<m.length;y++)for(let x=0;x<m[y].length;x++)if(m[y][x]){pc.fillStyle=colors[next.type];pc.fillRect(offX+x*sz+1,offY+y*sz+1,sz-2,sz-2);pc.strokeStyle='#8d756955';pc.strokeRect(offX+x*sz+1,offY+y*sz+1,sz-2,sz-2)}}
- function stats(){nodes.score.textContent=score.toLocaleString();nodes.lines.textContent=lines;nodes.level.textContent=level}
+ function stats(){nodes.score.textContent=score.toLocaleString();nodes.lines.textContent=lines;nodes.level.textContent=level;window.aoyinGuardian.recordScore(score)}
  function settle(){piece.m.forEach((row,y)=>row.forEach((v,x)=>{if(v&&piece.y+y>=0)board[piece.y+y][piece.x+x]=piece.type}));let removed=0;for(let y=H-1;y>=0;y--){if(board[y].every(Boolean)){board.splice(y,1);board.unshift(Array(W).fill(null));removed++;y++}}if(removed){score+=[0,100,300,500,800][removed]*level;lines+=removed;level=1+Math.floor(lines/10)}stats();spawn()}
  function step(){if(!piece)return;if(!hits(piece,0,1))piece.y++;else settle()}
  function rotate(){if(mode!=='playing'||!piece)return;let m=piece.m[0].map((_,i)=>piece.m.map(row=>row[i]).reverse());for(const dx of [0,-1,1,-2,2])if(!hits(piece,dx,0,m)){piece.x+=dx;piece.m=m;break}render()}
